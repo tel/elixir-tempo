@@ -5,43 +5,76 @@ defmodule Tempo.Vdom do
   is sufficient for constructing a static tree and allows for fast,
   concatenative construction of an HTML document.
 
-  After a Vdom has been constructed it should be *rendered* into an iolist
-  for use.
+  After a Vdom has been constructed it should be *rendered* into iodata for
+  use.
   """
 
-  @doc """
+  alias Tempo.Internal
+  alias Tempo.Attrs
+
+  @typedoc """
   The Vdom type itself.
   """
-  @opaque t() :: {:text, String.t()} | {:safe, iolist()} | {:element, atom(), [t()]}
+  @opaque t() :: {:text, String.t()} | {:safe, iodata()} | {:element, atom(), any(), [t()]}
 
-  @spec render(t()) :: iolist()
+  @spec render(t()) :: iodata()
   def render(vdom) do
     case vdom do
       {:text, text} ->
         # Note: It'd be nice to use the same HTML escape algorithm as available in
         # Plug, e.g., but that's a huge dependency
-        HtmlEntities.encode(text)
+        Internal.escape(text)
 
       {:safe, text} ->
         text
 
-      {:element, tag, children} ->
-        tagname = Atom.to_string(tag)
+      {:element, tag, attrs, children} ->
+        tag = Atom.to_string(tag)
+        has_attrs = !Enum.empty?(attrs)
+        has_children = !Enum.empty?(children)
+        attrs = render_attr_set(attrs)
+        children = Enum.map(children, &render/1)
 
-        if Enum.empty?(children) do
-          "<#{tagname} />"
-        else
-          ["<#{tagname}>", Enum.map(children, &render/1), "</#{tagname}>"]
+        case {has_attrs, has_children} do
+          {false, false} ->
+            "<#{tag} />"
+
+          {false, true} ->
+            ["<#{tag}>", children, "</#{tag}>"]
+
+          {true, false} ->
+            ["<#{tag} ", attrs, " />"]
+
+          {true, true} ->
+            ["<#{tag} ", attrs, ">", children, "</#{tag}>"]
         end
+    end
+  end
+
+  defp render_attr_set(maplike) do
+    # Based on implementation for Enum.join
+    reduced =
+      Enum.reduce(maplike, :first, fn
+        {k, v}, :first when is_atom(k) ->
+          [Atom.to_string(k), ~s{="}, Attrs.render_value(v), ~s{"}]
+
+        {k, v}, acc when is_binary(k) ->
+          [acc, " ", k, ~s{="}, Attrs.render_value(v), ~s{"}]
+      end)
+
+    if reduced == :first do
+      ""
+    else
+      reduced
     end
   end
 
   @spec text(String.t()) :: t()
   def text(string), do: {:text, string}
 
-  @spec el(atom(), [any()], [t()]) :: t()
-  def el(tag, _attrs, children), do: {:element, tag, children}
+  @spec el(atom(), Attrs.t(), [t()]) :: t()
+  def el(tag, attrs, children), do: {:element, tag, attrs, children}
 
-  @spec unsafe_raw(iolist()) :: t()
-  def unsafe_raw(iolist), do: {:safe, iolist}
+  @spec unsafe_raw(iodata()) :: t()
+  def unsafe_raw(iodata), do: {:safe, iodata}
 end

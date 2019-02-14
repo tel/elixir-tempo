@@ -10,7 +10,7 @@ defmodule Tempo do
   """
   alias Tempo.Vdom
 
-  @spec render(Vdom.t()) :: {:safe, iolist()}
+  @spec render(Vdom.t()) :: {:safe, iodata()}
   def render(vdom) do
     {:safe, Tempo.Vdom.render(vdom)}
   end

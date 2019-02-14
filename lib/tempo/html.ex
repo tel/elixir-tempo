@@ -4,7 +4,7 @@ defmodule Tempo.Html do
   provided by <https://developer.mozilla.org/en-US/docs/Web/HTML/Element>.
   """
 
-  import Tempo.Macros
+  import Tempo.Internal, only: [deftag: 2]
   alias Tempo.Vdom
 
   @doc """
@@ -27,14 +27,14 @@ defmodule Tempo.Html do
   end
 
   @doc "Creates an HTML comment. Does not escape inner text, so be careful about including user data."
-  @spec unsafe_comment(iolist()) :: Vdom.t()
+  @spec unsafe_comment(iodata()) :: Vdom.t()
   def unsafe_comment(text) do
     Vdom.unsafe_raw(["<!-- ", text, " -->"])
   end
 
   @doc "Creates an HTML5 doctype tag."
   @spec doctype() :: Vdom.t()
-  def doctype, do: Vdom.unsafe_raw("<!DOCTYPE html>")
+  def doctype(), do: Vdom.unsafe_raw("<!DOCTYPE html>")
 
   # Main root
   #
