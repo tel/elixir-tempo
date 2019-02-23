@@ -15,7 +15,11 @@ defmodule Tempo.Vdom do
   @typedoc """
   The Vdom type itself.
   """
-  @opaque t() :: {:text, String.t()} | {:safe, iodata()} | {:element, atom(), any(), [t()]}
+  @opaque t() ::
+            {:text, String.t()}
+            | {:safe, iodata()}
+            | {:element, atom(), any(), [t()]}
+            | {:component, atom(), any()}
 
   @spec render(t()) :: iodata()
   def render(vdom) do
@@ -48,6 +52,9 @@ defmodule Tempo.Vdom do
           {true, true} ->
             ["<#{tag} ", attrs, ">", children, "</#{tag}>"]
         end
+
+      {:component, module, arg} ->
+        render(module.render(arg))
     end
   end
 

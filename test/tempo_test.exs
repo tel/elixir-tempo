@@ -21,7 +21,7 @@ defmodule TempoTest do
 
   describe "empty tag with attrs" do
     test "example 1" do
-      assert(render(tdiv(class: %{active: true})) === ~s{<div class="active" />})
+      assert(render(tadiv(class: %{active: true})) === ~s{<div class="active" />})
     end
   end
 
@@ -32,7 +32,7 @@ defmodule TempoTest do
   end
 
   test "nested divs with attributes" do
-    tree = tdiv([class: "outer"], [tdiv(class: "inner1"), tdiv(class: "inner2")])
+    tree = tdiv([class: "outer"], [tadiv(class: "inner1"), tadiv(class: "inner2")])
     expected = ~s{<div class="outer"><div class="inner1" /><div class="inner2" /></div>}
     assert(render(tree) === expected)
   end

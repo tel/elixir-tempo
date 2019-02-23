@@ -1,4 +1,4 @@
-defmodule Tempo.AttrsTest do
+defmodule AttrsTest do
   use ExUnit.Case, async: true
   doctest Tempo.Attrs, import: true
 

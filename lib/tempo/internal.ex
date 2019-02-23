@@ -11,20 +11,29 @@ defmodule Tempo.Internal do
   Defines a new set of "tag" functions for a given name.
   """
   defmacro deftag(tag, doc) do
-    fun_name = String.to_atom("t" <> Atom.to_string(tag))
+    tname = String.to_atom("t" <> Atom.to_string(tag))
+    taname = String.to_atom("ta" <> Atom.to_string(tag))
 
     quote do
       @doc unquote(doc)
-      @spec unquote(fun_name)() :: Vdom.t()
-      def unquote(fun_name)(), do: Vdom.el(unquote(tag), [], [])
+      @spec unquote(taname)([any()]) :: Vdom.t()
+      def unquote(taname)(attrs) when is_list(attrs) do
+        Vdom.el(unquote(tag), attrs, [])
+      end
 
       @doc unquote(doc)
-      @spec unquote(fun_name)([any()]) :: Vdom.t()
-      def unquote(fun_name)(attrs), do: Vdom.el(unquote(tag), attrs, [])
+      @spec unquote(tname)() :: Vdom.t()
+      def unquote(tname)(), do: Vdom.el(unquote(tag), [], [])
 
       @doc unquote(doc)
-      @spec unquote(fun_name)([any()], [Vdom.t()]) :: Vdom.t()
-      def unquote(fun_name)(attrs, children), do: Vdom.el(unquote(tag), attrs, children)
+      @spec unquote(tname)([any()], Vdom.t() | [Vdom.t()]) :: Vdom.t()
+      def unquote(tname)(attrs, children) when is_list(children) do
+        Vdom.el(unquote(tag), attrs, children)
+      end
+
+      def unquote(tname)(attrs, child) do
+        Vdom.el(unquote(tag), attrs, [child])
+      end
     end
   end
 
